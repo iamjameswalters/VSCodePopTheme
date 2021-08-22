@@ -1,0 +1,91 @@
+# Syncs from upstream and deploys latest to Open-VSX
+
+name: CI/CD to Open-VSX
+
+# Run twice a year
+on:
+  schedule:
+  - cron: '30 3 15 5/6 *'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+#   fetch-and-build:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v2
+#     - uses: actions/setup-node@v1
+#       with:
+#         node-version: 14
+  
+#     - name: Rebase Upstream
+#       # You may pin to the exact commit or the version.
+#       # uses: imba-tjd/rebase-upstream-action@3727d50bfd7062fb794dcb81268451bdbe9ff5c0
+#       uses: imba-tjd/rebase-upstream-action@0.5
+#       with:
+#         # <user>/<repo> or the full HTTP URL
+#         upstream: ArtisanByteCrafter/VSCodePopTheme
+#         # The upstream branch that is rebased on
+#         branch: master
+#         # Greater than the number of commits the upstream made in a period
+#         depth: 100
+#         # Do the force push in this action
+#         push: true
+
+  sync_and_build_latest_from_upstream:
+    runs-on: ubuntu-latest
+    name: Sync latest commits from upstream repo
+
+    steps:
+    # Load in node for building extension in step 4
+    - uses: actions/setup-node@v1
+    
+    # REQUIRED step
+    # Step 1: run a standard checkout action, provided by github
+    - name: Checkout target repo
+      uses: actions/checkout@v2
+      with:
+        # optional: set the branch to checkout,
+        # sync action checks out your 'target_sync_branch' anyway
+        ref:  build-from
+        # REQUIRED if your upstream repo is private (see wiki)
+        persist-credentials: false
+
+    # REQUIRED step
+    # Step 2: run the sync action
+    - name: Sync upstream changes
+      id: sync
+      uses: aormsby/Fork-Sync-With-Upstream-action@v3.0
+      with:
+        target_sync_branch: build-from
+        # REQUIRED 'target_repo_token' exactly like this!
+        target_repo_token: ${{ secrets.GITHUB_TOKEN }}
+        upstream_sync_branch: master
+        upstream_sync_repo: ArtisanByteCrafter/VSCodePopTheme
+        upstream_repo_access_token: ${{ secrets.UPSTREAM_REPO_SECRET }}
+
+        # Set test_mode true to run tests instead of the true action!!
+        test_mode: true
+      
+    # Step 3: Display a sample message based on the sync output var 'has_new_commits'
+    - name: New commits found
+      if: steps.sync.outputs.has_new_commits == 'true'
+      run: echo "New commits were found to sync."
+    
+    - name: No new commits
+      if: steps.sync.outputs.has_new_commits == 'false'
+      run: echo "There were no new commits."
+      
+    - name: Show value of 'has_new_commits'
+      run: echo ${{ steps.sync.outputs.has_new_commits }}
+     
+    # Step 4: Build and publish extension to Open VSX 
+    - name: Publish Extension to Open VSX
+      # You may pin to the exact commit or the version.
+      # uses: HaaLeo/publish-vscode-extension@aae4c55fd9e724685834ff0a9488ad57c8f3ecf1
+      uses: HaaLeo/publish-vscode-extension@v0
+      with:
+        # Personal access token
+        pat: ${{ secrets.OPEN_VSX_TOKEN }}
+#         dryRun: true

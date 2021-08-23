@@ -63,6 +63,7 @@ jobs:
         target_repo_token: ${{ secrets.GITHUB_TOKEN }}
         upstream_sync_branch: master
         upstream_sync_repo: ArtisanByteCrafter/VSCodePopTheme
+        git_config_user: iamjameswalters
 
         # Set test_mode true to run tests instead of the true action!!
 #         test_mode: true

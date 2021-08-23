@@ -37,10 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Sync latest commits from upstream repo
 
-    steps:
-    # Load in node for building extension in step 4
-    - uses: actions/setup-node@v1
-    
+    steps:   
     # REQUIRED step
     # Step 1: run a standard checkout action, provided by github
     - name: Checkout target repo
@@ -86,7 +83,17 @@ jobs:
     needs: sync_latest_from_upstream
     steps:
       - uses: actions/setup-node@v1
-      - name: Publish and Build
+      # Step 1: run a standard checkout action, provided by github
+      - name: Checkout target repo
+        uses: actions/checkout@v2
+        with:
+          # optional: set the branch to checkout,
+          # sync action checks out your 'target_sync_branch' anyway
+          ref:  build-from
+      
+      # Step 2: package extension and publish a new version to Open VSX.
+      #         This will fail if the version is the same as what's already in the store.
+      - name: Package and Publish
       # You may pin to the exact commit or the version.
       # uses: HaaLeo/publish-vscode-extension@aae4c55fd9e724685834ff0a9488ad57c8f3ecf1
         uses: HaaLeo/publish-vscode-extension@v0

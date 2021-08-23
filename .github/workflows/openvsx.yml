@@ -86,11 +86,11 @@ jobs:
     needs: sync_latest_from_upstream
     steps:
       - name: Publish and Build
-      - uses: actions/setup-node@v1
+        uses: actions/setup-node@v1
       # You may pin to the exact commit or the version.
       # uses: HaaLeo/publish-vscode-extension@aae4c55fd9e724685834ff0a9488ad57c8f3ecf1
-      - uses: HaaLeo/publish-vscode-extension@v0
-      - with:
+        uses: HaaLeo/publish-vscode-extension@v0
+        with:
         # Personal access token
           pat: ${{ secrets.OPEN_VSX_TOKEN }}
   #         dryRun: true
